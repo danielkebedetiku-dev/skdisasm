@@ -1,9 +1,11 @@
 import os
 import struct
-import subprocess
-from PIL import Image, ImageEnhance
+import zipfile
+from collections import Counter
+from PIL import Image, ImageFilter
 
-subprocess.run(["python", "slice.py"], check=True)
+with zipfile.ZipFile("eggman-sprites 3.zip", "r") as z:
+    z.extractall("sprites_raw")
 
 PALETTE = [
     (0, 0, 0),
@@ -36,7 +38,38 @@ def nearest_color(rgb):
             best_i = i
     return best_i
 
-frames = [1, 13, 14, 15, 44, 52, 51]
+def clean_sprite(img):
+    img = img.filter(ImageFilter.ModeFilter(size=3))
+    w, h = img.size
+    px = img.load()
+    grid = {}
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[(x, y)]
+            if a < 220 or (b > 110 and r > 70 and g < 90):
+                grid[(x, y)] = 0
+            else:
+                grid[(x, y)] = nearest_color((r, g, b))
+
+    cleaned = {}
+    for y in range(h):
+        for x in range(w):
+            if grid[(x, y)] == 0:
+                cleaned[(x, y)] = 0
+                continue
+            neighbors = []
+            for nx, ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1)):
+                if grid.get((nx, ny), 0) != 0:
+                    neighbors.append(grid[(nx, ny)])
+            if len(neighbors) == 0:
+                cleaned[(x, y)] = 0
+            elif len(neighbors) < 4:
+                cleaned[(x, y)] = 4
+            else:
+                cleaned[(x, y)] = Counter(neighbors).most_common(1)[0][0]
+    return cleaned
+
+frames = (1, 13, 14, 15, 44, 52, 51)
 os.makedirs("eggman_bin", exist_ok=True)
 
 pal_bytes = bytearray()
@@ -53,30 +86,32 @@ map_entries = []
 tile_offset = 0
 
 for idx in frames:
-    img = Image.open(f"sprites/eggman_{idx:03d}.png").convert("RGBA")
-    r, g, b, a = img.split()
-    rgb = Image.merge("RGB", (r, g, b))
-    rgb = ImageEnhance.Sharpness(rgb).enhance(2.5)
-    rgb = ImageEnhance.Contrast(rgb).enhance(1.35)
-    a = a.point(lambda p: 255 if p > 210 else 0)
-    img = Image.merge("RGBA", (*rgb.split(), a))
-
-    w, h = img.size
+    path = None
+    for root, _, files in os.walk("sprites_raw"):
+        target = f"eggman_{idx:03d}.png"
+        if target in files:
+            path = os.path.join(root, target)
+            break
+    raw = Image.open(path).convert("RGBA")
+    grid = clean_sprite(raw)
+    w, h = raw.size
     tw = (w + 7) // 8
     th = (h + 7) // 8
-    canvas = Image.new("RGBA", (tw * 8, th * 8), (0, 0, 0, 0))
-    canvas.paste(img, ((tw * 8 - w) // 2, (th * 8 - h) // 2))
-    px = canvas.load()
+    ox = (tw * 8 - w) // 2
+    oy = (th * 8 - h) // 2
+
+    canvas = {}
+    for y in range(h):
+        for x in range(w):
+            canvas[(ox + x, oy + y)] = grid[(x, y)]
 
     frame_tiles = bytearray()
     for tx in range(tw):
         for ty in range(th):
             for py in range(8):
                 for px_x in range(0, 8, 2):
-                    c1 = px[(tx * 8 + px_x, ty * 8 + py)]
-                    c2 = px[(tx * 8 + px_x + 1, ty * 8 + py)]
-                    i1 = 0 if c1[3] == 0 else nearest_color(c1[:3])
-                    i2 = 0 if c2[3] == 0 else nearest_color(c2[:3])
+                    i1 = canvas.get((tx * 8 + px_x, ty * 8 + py), 0)
+                    i2 = canvas.get((tx * 8 + px_x + 1, ty * 8 + py), 0)
                     frame_tiles.append((i1 << 4) | i2)
 
     num_tiles = len(frame_tiles) // 32
