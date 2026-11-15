@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - 'slice.py'
-      - 'eggman_sheet.*'
+      - 'Eggman.jpg'
       - '.github/workflows/slice.yml'
 
 jobs:
