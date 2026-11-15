@@ -6,7 +6,7 @@ os.makedirs("sprites", exist_ok=True)
 img = Image.open("Eggman.jpg").convert("RGBA")
 w, h = img.size
 px = img.load()
-bg = px[:3]
+bg = px[0, 0][:3]
 visited = [[False] * h for _ in range(w)]
 idx = 1
 
