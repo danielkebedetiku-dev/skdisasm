@@ -1,11 +1,9 @@
-import glob
 import os
 from collections import deque
 from PIL import Image
 
 os.makedirs("sprites", exist_ok=True)
-files = glob.glob("eggman_sheet.*")
-img = Image.open(files).convert("RGBA")
+img = Image.open("Eggman.jpg").convert("RGBA")
 w, h = img.size
 px = img.load()
 bg = px[:3]
