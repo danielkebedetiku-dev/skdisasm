@@ -13,10 +13,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build ROM
-        run: .\build.bat
+        run: cmd /c "echo. | build.bat"
 
       - name: Upload built ROM
         uses: actions/upload-artifact@v4
         with:
           name: sonic3k-rom
-          path: "*.bin
+          path: "*.bin"
