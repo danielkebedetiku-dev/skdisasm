@@ -27,15 +27,16 @@ jobs:
           $code = $code -replace "Map_Sonic:", "Map_Sonic:`r`n`t`tinclude `"eggman_bin/eggman_tables.asm`"`r`nMap_Sonic_Unused:"
           $code = $code -replace "DPLC_Sonic:", "DPLC_Sonic:`r`n`t`tbra.w`tDPLC_Eggman`r`nDPLC_Sonic_Unused:"
           $code = $code -replace "Pal_Sonic:", "Pal_Sonic:`r`n`t`tincbin `"eggman_bin/pal_eggman.bin`"`r`nPal_Sonic_Unused:"
-          $code = $code -replace "Level_Init:", "Level_Init:`r`n`t`ttst.b`t(Saved_Flags).w`r`n`t`tbne.s`t.alreadyInit`r`n`t`tbsr.w`tEggman_Route_Start`r`n.alreadyInit:"
           $code = $code -replace "(?m)^END\s*$", "include `"routern.asm`"`r`ninclude `"eggman_route.asm`"`r`ninclude `"Eggman.asm`"`r`nEND"
           Set-Content "sonic3k.asm" $code -NoNewline
 
       - name: Build ROM
-        run: cmd /c "echo. | buildS3Complete.bat"
+        run: |
+          cmd /c "echo. | buildS3Complete.bat"
+          if (!(Test-Path "*.bin")) { exit 1 }
 
       - name: Upload built ROM
         uses: actions/upload-artifact@v4
         with:
           name: sonic3k-rom
-          path: "*.bin"
+          path: "*.bin
