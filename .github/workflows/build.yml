@@ -12,11 +12,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Convert Eggman Sprites
+        run: |
+          pip install pillow
+          python convert_eggman.py
+
       - name: Hook Eggman Code
         run: |
           $code = Get-Content "sonic3k.asm" -Raw
           $code = $code -replace "Sonic_InstaShield:", "Sonic_InstaShield:`r`n`t`tjmp`tEggman_Jetpack_Start"
           $code = $code -replace "Sonic_JumpHeight:", "Sonic_JumpHeight:`r`n`t`tbsr.w`tEggman_Jetpack_Fly"
+          $code = $code -replace "Sonic_Animate:", "Sonic_Animate:`r`n`t`tjmp`tEggman_Route_Frame"
+          $code = $code -replace "ArtUnc_Sonic:", "ArtUnc_Sonic:`r`n`t`tincbin `"eggman_bin/art_eggman.bin`"`r`nArtUnc_Sonic_Unused:"
+          $code = $code -replace "Map_Sonic:", "Map_Sonic:`r`n`t`tinclude `"eggman_bin/eggman_tables.asm`"`r`nMap_Sonic_Unused:"
+          $code = $code -replace "DPLC_Sonic:", "DPLC_Sonic:`r`n`t`tbra.w`tDPLC_Eggman`r`nDPLC_Sonic_Unused:"
+          $code = $code -replace "Pal_Sonic:", "Pal_Sonic:`r`n`t`tincbin `"eggman_bin/pal_eggman.bin`"`r`nPal_Sonic_Unused:"
           $code = $code -replace "(?m)^END\s*$", "include `"Eggman.asm`"`r`nEND"
           Set-Content "sonic3k.asm" $code -NoNewline
 
