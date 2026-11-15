@@ -13,7 +13,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build ROM
-        run: cmd /c "echo. | build.bat"
+        run: |
+          if (Test-Path "build.lua") { .\build_tools\Lua\lua.exe build.lua }
+          elseif (Test-Path "buildS3K.bat") { cmd /c "echo. | buildS3K.bat" }
+          else { Get-ChildItem -Filter "*build*" }
 
       - name: Upload built ROM
         uses: actions/upload-artifact@v4
