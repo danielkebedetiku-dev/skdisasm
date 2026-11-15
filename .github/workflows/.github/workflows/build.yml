@@ -1,0 +1,22 @@
+name: Build Sonic 3K ROM
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build ROM
+        run: .\build.bat
+
+      - name: Upload built ROM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonic3k-rom
+          path: "*.bin
