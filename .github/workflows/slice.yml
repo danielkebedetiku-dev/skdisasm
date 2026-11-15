@@ -1,7 +1,11 @@
 name: Slice Eggman Sprites
 
 on:
-  workflow_dispatch:
+  push:
+    paths:
+      - 'slice.py'
+      - 'eggman_sheet.*'
+      - '.github/workflows/slice.yml'
 
 jobs:
   slice:
