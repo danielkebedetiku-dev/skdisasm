@@ -17,7 +17,7 @@ jobs:
           $code = Get-Content "sonic3k.asm" -Raw
           $code = $code -replace "Sonic_InstaShield:", "Sonic_InstaShield:`r`n`t`tjmp`tEggman_Jetpack_Start"
           $code = $code -replace "Sonic_JumpHeight:", "Sonic_JumpHeight:`r`n`t`tbsr.w`tEggman_Jetpack_Fly"
-          $code = $code -replace "(?m)^END\s*$", "include `"eggman.asm`"`r`nEND"
+          $code = $code -replace "(?m)^END\s*$", "include `"Eggman.asm`"`r`nEND"
           Set-Content "sonic3k.asm" $code -NoNewline
 
       - name: Build ROM
