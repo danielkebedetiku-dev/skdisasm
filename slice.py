@@ -4,11 +4,11 @@ from collections import deque
 from PIL import Image
 
 os.makedirs("sprites", exist_ok=True)
-file = glob.glob("eggman_sheet.*")[0]
-img = Image.open(file).convert("RGBA")
+files = glob.glob("eggman_sheet.*")
+img = Image.open(files).convert("RGBA")
 w, h = img.size
 px = img.load()
-bg = px[0, 0][:3]
+bg = px[:3]
 visited = [[False] * h for _ in range(w)]
 idx = 1
 
